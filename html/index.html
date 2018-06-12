@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <style>
+      #app {
+        width: 500px;
+        height: 500px;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select:none;
+        -moz-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      img {
+        pointer-events: none;
+      }
+    </style>
+  <script src="jquery-1.10.2.js"></script>
+  <script src="mq.gestures.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <img src="len_std.jpg"></img>
+      
+    </div>
+    <div>
+        <div>
+            <label>event type</label> <span id="idEventType"></span><br/>
+            <label>event type</label> <span id="idLog"></span><br/>
+        </div>
+        <br />
+        <button type="button" id="idBtn">button-test</button>
+    </div>
+      <script >
+          var posx = 0;
+          var posy = 0;
+          var rad = 0;
+          var m11=0,m12=0,m13=0;
+          var m21=0,m22=0,m23=0;
+          updateRotate(rad);
+          function click_left() {
+            m13--;
+            updateTransform();
+          }
+          function click_right() {
+            //posx++;
+            m13++;
+            updateTransform();
+          }
+          function click_up() {
+            //posy--;
+            m23--;
+            updateTransform();
+          }
+          function click_down() {
+            //posy++;
+            m23++;
+            updateTransform();
+          }
+          function deg2rad(degree){
+            return degree * Math.PI / 180;
+          }
+          function updateRotate(rad) {
+            //var rad = deg2rad(degree);
+            m11 = Math.cos(rad);
+            m12 = -Math.sin(rad);
+            m21 = Math.sin(rad);
+            m22 = Math.cos(rad);	
+          }
+          function updateTransform(){
+            transform('matrix('+m11+','+m21+','+m12+','+m22+','+m13+','+m23+')');
+          }
+          function transform(val) {		
+            $('#app').css('transform', val);
+            $('#app').css('-ms-transform', val);
+            $('#app').css('-webkit-transform', val);
+            $('#app').css('-o-transform', val);
+            $('#app').css('-moz-transform', val);
+          }
+          function click_tap() {
+            $('#idEventType').text('one-tap');
+            m23++;
+            updateTransform();
+          }
+          function click_doubletap() {
+            $('#idEventType').text('double-tap');
+            console.log('dobule-tap');
+          }
+          var longto;
+          function click_longtap(e) {
+            $('#idEventType').text('long-tap');
+            $('#idLog').text('longtap:'+m23);
+            function updateMuch() {
+
+              m23++;
+              updateTransform();
+              clearTimeout(longto);
+              longto = setTimeout(() => {
+                  updateMuch();
+              }, 20);
+            }
+            if (e.type === 1) {
+              updateMuch();
+            } else {
+              clearTimeout(longto);
+            }            
+          }
+          function click_move(e) {
+            $('#idEventType').text('move');
+            m13 += e.x;
+            m23 += e.y;
+            updateTransform();
+          }
+          function click_swipe() {
+            $('#idEventType').text('swipe');
+            console.log('swipe');
+          }
+          function click_rotate(e) {
+            $('#idEventType').text('rotate');
+            $('#idLog').text(e.angle);
+            rad += e.angle;
+            updateRotate(rad);
+            updateTransform();
+
+          }
+          function click_scale(e) {
+            $('#idEventType').text('pinch');
+            var type = 'magnify';
+            if (e.scale === 0) type = 'minification'
+            $('#idLog').text('pinch ' + type);
+          }
+          function click_log(e) {
+            console.log('log', e);
+            var str='';
+            e.forEach(element => {
+              str +=';' + element;
+            });
+            $('#idLog').text(str);
+          }
+
+          //var element = $('#app');
+          var element = document.getElementById('app');
+          var mqgesture = mq.gesture;
+          var gesture = mqgesture.init(element, {
+            onTap: click_tap,
+            onDoubleTap: click_doubletap,
+            onLongTap: click_longtap,
+            onMove: click_move,
+            onSwipe: click_swipe,
+            onRotate: click_rotate,
+            onPinch: click_scale,
+            onLog: click_log
+          });
+          var btn = document.getElementById('idBtn');
+          mqgesture.init(btn, {
+            onTap: click_tap,
+            onDoubleTap: click_doubletap,
+            onLongTap: click_longtap,
+            onMove: click_move,
+            onSwipe: click_swipe,
+            onRotate: click_rotate,
+            onPinch: click_scale,
+            onLog: click_log
+          });
+      </script>  
+  </body>
+
+</html>
