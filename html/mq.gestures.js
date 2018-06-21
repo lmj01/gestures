@@ -6,6 +6,7 @@
  * 缩放或旋转是多点触摸,旋转手势是固定第一个点,变动第二个点
  * 缩放是两点同时向里或向外移动
  * 长按开始传入type===1,弹起后传入type===0
+ * 挥动传入type===1为向后,其他为向前
  * var element = document.getElementById('app');
  * var mqgesture = mq.gesture;
  * mqgesture.init(element, {
@@ -31,6 +32,7 @@ mq.gesture = {
 			startY: null,
 			start2X: null,
 			start2Y: null,
+			clientX: null,
 			moveX: null,
 			moveY: null,
 			startTime: null, // 按下时间
@@ -70,6 +72,7 @@ mq.gesture = {
 			let touch1 = e.touches[0];
 			detect.startX = touch1.pageX;
 			detect.startY = touch1.pageY;
+			detect.clientX = touch1.clientX/2;
 			window.clearTimeout(detect.longPress);
 			if (e.touches.length > 1) {
 				// 多点检测
@@ -118,14 +121,12 @@ mq.gesture = {
 				else if ((Math.abs(detect.startX - e.touches[0].pageX) < 1 && 
 						  Math.abs(detect.startY - e.touches[0].pageY) < 1)) {
 					let vector = {
-						x: e.touches[1].pageX - e.touches[0].pageX,
-						y: e.touches[1].pageY - e.touches[0].pageY
+						x: e.touches[1].pageX - detect.startX,
+						y: e.touches[1].pageY - detect.startY
 					};
-					let angle = rotateAngle(vector, detect.vector);
-					//logs.push('angle:'+angle);
-					options.onRotate({angle:angle});
-					detect.vector.x = vector.x;
-					detect.vector.y = vector.y;
+					let angleval = rotateAngle(vector, detect.vector);
+					logs.push('angle:'+angleval);
+					options.onRotate({angle:angleval});
 				}
 			} else {
 				let point = e.touches ? e.touches[0] : e;
@@ -148,7 +149,13 @@ mq.gesture = {
 				// 挥动,有偏移产生的
 				if ((detect.moveX !== null && Math.abs(xoffset) > 10) ||
 					(detect.moveY !== null && Math.abs(yoffset) > 10)) {
-					if (timestamp - detect.startTime < 500) options.onSwipe();
+					if (timestamp - detect.startTime < 500) {
+						if (detect.startX > detect.clientX) {
+							options.onSwipe({type:1});
+						} else {
+							options.onSwipe({type:0});
+						}
+					}
 				}
 				// 单击 
 				else if (timestamp - detect.startTime < 500) {
@@ -172,11 +179,13 @@ mq.gesture = {
 		function distance(x, y) {
 			return Math.sqrt(x*x + y*y);
 		}
-		/*    /|
-		 *   / |
-		 *  /  | v2
-		 * /___|
-		 *   v1
+		/*    
+		 *    ~~~~~~~~ 
+		 * p1 \      / p1`
+		 *     \    /
+		 *      \  / 
+		 *       \/
+		 *       p0
 		 * */
 		// 向量的旋转方向
 		function rotateDirection(v1, v2) {

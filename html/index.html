@@ -7,8 +7,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
       #app {
-        width: 500px;
-        height: 500px;
+        width: 100%;
+        height: 100%;
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         -khtml-user-select:none;
@@ -26,8 +26,7 @@
   </head>
   <body>
     <div id="app">
-      <img src="len_std.jpg"></img>
-      
+      <img src="len_std.jpg"></img>      
     </div>
     <div>
         <div>
@@ -117,14 +116,18 @@
             m23 += e.y;
             updateTransform();
           }
-          function click_swipe() {
+          function click_swipe(e) {
             $('#idEventType').text('swipe');
-            console.log('swipe');
+            if (e.type === 1) {
+              click_right();
+            } else {
+              click_left();
+            }
           }
           function click_rotate(e) {
             $('#idEventType').text('rotate');
-            $('#idLog').text(e.angle);
             rad += e.angle;
+            $('#idLog').text('delta:'+e.angle+',rad:'+rad);            
             updateRotate(rad);
             updateTransform();
 
